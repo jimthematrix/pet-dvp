@@ -11,7 +11,7 @@ Two major designs of privacy preserving tokens are covered:
 
 ## DvP Pattern 1: Confidential ERC20 with deposit in escrow vs. Zeto with locking
 
-The flow for the secure exchange of tokens between two parties, each using a different token implementation, FHE or UTXO.
+The flows for the secure exchange of tokens between two parties, one using a vanilla Confidential ERC20 token, another using a UTXO based privacy token that supports locking.
 
 ### Propose -> Accept -> Approve -> Execute
 
@@ -137,5 +137,7 @@ sequenceDiagram
 [to be continued]
 
 ## DvP Pattern 2: Confidential ERC20 with locking vs. Zeto with locking
+
+The flows for the secure exchange of tokens between two parties, one using a Confidential ERC20 token enhanced with locking, another using a UTXO based privacy token that supports locking.
 
 [to be continued]
