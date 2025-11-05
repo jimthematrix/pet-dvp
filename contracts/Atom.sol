@@ -40,7 +40,10 @@ contract Atom {
     }
 
     modifier onlyOnce() {
-        require(!_hasBeenInitialized, "Function has already been called.");
+        require(
+            !_hasBeenInitialized,
+            "The Atom contract has already been initialized."
+        );
         _hasBeenInitialized = true;
         _;
     }
