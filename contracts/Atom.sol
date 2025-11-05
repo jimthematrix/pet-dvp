@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {ISwappableFheERC20} from "./ISwappableFheERC20.sol";
 
 contract Atom {
     using Address for address;
@@ -54,6 +55,13 @@ contract Atom {
             _operations.push(operations[i]);
         }
         emit AtomStatusChanged(status);
+    }
+
+    function allowBalanceCheck(
+        ISwappableFheERC20 confidentialERC20,
+        address spender
+    ) external {
+        confidentialERC20.allowBalanceCheck(spender);
     }
 
     /**
