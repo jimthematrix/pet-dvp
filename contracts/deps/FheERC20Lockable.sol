@@ -84,7 +84,7 @@ contract FheERC20Lockable is
             "Only the delegate of the lock can settle it"
         );
 
-        euint64 transferred = confidentialTransferFromAsTrustedOperator(
+        euint64 transferred = _transferFromAsTrustedOperator(
             address(this),
             lock.receiver, // for settle, the receiver is the recipient of the locked tokens
             lock.amount
@@ -135,7 +135,7 @@ contract FheERC20Lockable is
         );
     }
 
-    function confidentialTransferFromAsTrustedOperator(
+    function _transferFromAsTrustedOperator(
         address from,
         address to,
         euint64 amount
