@@ -21,8 +21,8 @@ import { expect } from "chai";
 import { Merkletree, InMemoryDB, str2Bytes } from "@iden3/js-merkletree";
 import { loadCircuit, Poseidon } from "zeto-js";
 
-process.env.SKIP_ZETO_TESTS = "true";
 process.env.SKIP_ANON_TESTS = "true";
+process.env.SKIP_ANON_NULLIFIER_TESTS = "true";
 import { prepareProof, encodeToBytes } from "zeto-solidity/test/zeto_anon_nullifier";
 import { prepareProof as prepareProofLocked, encodeToBytes as encodeToBytesLocked } from "zeto-solidity/test/zeto_anon";
 import {
