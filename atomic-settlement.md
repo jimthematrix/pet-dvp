@@ -32,6 +32,8 @@ This category of tokens protect the confidentiality of the onchain states and tr
 
 If the commitments are based on hashes, no operations can be performed on the commitments during state transition. The smart contract must completely rely on a ZKP submitted by the transaction sender to verify if the state transitions are proposed correctly, obeying all spending rules such as mass conservation and entitlement.
 
+Due to the disjoint nature of the commiments, the state model is inevitablely **UTXO** (Unspent Transaction Output) based. This model has the advantage of supporting parallel processing, where the same spending account can submit many transactions simultaneously, each consuming a different collection of the account's UTXOs. This means these tokens do not suffer from the concurrent spending limits as the tokens based on homomorphic commitments do.
+
 Many privacy tokens fit in this category, including:
 - Zcash
 - Railgun
@@ -61,3 +63,6 @@ Among the two tokens, 3 types of settlement flows can be implemented:
 
 The examples in this repository will demonstrate that a generic locking based settlement mechanism can be developed to support the major design patterns of privacy enhancing tokens, in multi-leg atomic settlement flows.
 
+The repository contains the following smart contract interfaces that need to be implemented to make the settlements work:
+- `ILockableConfidentialERC20`: as a demonstration for how Confidential ERC20 token implementations can be enhanced to support locking, where a portion of an account's balance is locked during the settlement period, such that only the designated `delegate` account can perform transfers on the locked amount. During the lock period, even the account owner is prevented from transferring the locked amount, thus keeping the committed values for a proposed trade/swap safe until settlement time.
+- `ILockableConfidentialUTXO`: as a demonstration of how commitments based token implementations can support locking.
