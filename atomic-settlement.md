@@ -63,6 +63,108 @@ Among the two tokens, 3 types of settlement flows can be implemented:
 
 The examples in this repository will demonstrate that a generic locking based settlement mechanism can be developed to support the major design patterns of privacy enhancing tokens, in multi-leg atomic settlement flows.
 
-The repository contains the following smart contract interfaces that need to be implemented to make the settlements work:
+The repository contains the following smart contract interfaces that need to be implemented in the privacy token contract to make the settlement flow work:
 - `ILockableConfidentialERC20`: as a demonstration for how Confidential ERC20 token implementations can be enhanced to support locking, where a portion of an account's balance is locked during the settlement period, such that only the designated `delegate` account can perform transfers on the locked amount. During the lock period, even the account owner is prevented from transferring the locked amount, thus keeping the committed values for a proposed trade/swap safe until settlement time.
+
+```solidity
+function createLock(bytes32 lockId, address receiver, address delegate, externalEuint64 amount, bytes calldata proof, bytes calldata data) external;
+function delegateLock(bytes32 lockId, address newDelegate, bytes calldata data) external;
+```
+
 - `ILockableConfidentialUTXO`: as a demonstration of how commitments based token implementations can support locking.
+
+```solidity
+function createLock(
+    bytes32 lockId,
+    LockParameters calldata parameters,
+    bytes calldata proof,
+    address delegate,
+    LockOperationData calldata settle,
+    LockOperationData calldata rollback,
+    bytes calldata data
+) external;
+
+function delegateLock(
+    bytes32 lockId,
+    address newDelegate,
+    bytes calldata data
+) external;
+```
+
+Both of the above interfaces extend the following generic lock interface, which is also used by the settlement orchestration contract to drive the settlement operations against the privacy tokens:
+- `ILockable`: with a simple interface that provides two functions, `settleLock` and `rollbackLock`, to be called to either proceed with settlement or to rollback. Each operation uses the `lockId` to signal to the target privacy token contract the lock to operate on.
+
+```solidity
+function settleLock(bytes32 lockId, bytes calldata data) external;
+function rollbackLock(bytes32 lockId, bytes calldata data) external;
+```
+
+Finally, a settlement orchestration contract implementation, `Atom`, is provided. The Atom contract must be initialized once with all the legs of the settlement, with each leg represented by an `Operation` object.
+
+### Successful Settlement Flow #1 - Confidential ERC20 vs. Confidential UTXO
+
+The diagram below illustrates a full settlement flow that results in the successful settlement between two 
+
+```mermaid
+sequenceDiagram
+  actor A as Alice (seller)
+  participant Aw as Alice wallet
+  participant A1 as Asset-1 contract<br>(UTXO)
+  participant E as Escrow contract
+  participant A2 as Asset-2 contract<br>(FHE)
+  participant Bw as Bob wallet
+  actor B as Bob (buyer)
+  par Alice (seller) proposes trade
+  rect rgb(200, 150, 255)
+    A->>Aw: deposit Asset-1 token A1
+    Aw->>A1: lock asset-1 token(s) to Escrow
+    A1->>A1: set Escrow as delegate for A1
+    A1-->>Aw: lock event (lockId-1, UTXO hash for A1)
+    A1-->>Bw: lock event (lockId-1, UTXO hash for A1)
+  end
+  end
+  par Alice sends partial secret for A1 to Bob to verify the trade proposal
+  rect rgb(200, 150, 255)
+    A->>B: salt for A1
+    B->>B: verify A1 == H(Bob pub key, expected trade value, salt)?
+  end
+  end
+  par Bob (buyer) accepts the trade proposal
+  rect rgb(191, 223, 255)
+    B->>Bw: accepts proposal
+    Bw->>A2: transfers Asset-2 tokens amount=A2 to Escrow<br>creates lockId<->ciphertext map entry
+    A2->>A2: moves amount=A2 to Escrow account
+    Bw->>A2: approves Alice to see the encrypted value just transferred
+    A2->>A2: calls allow(ciphertext, Alice)
+  end
+  end
+  par Alice (seller) verifies the trade response
+  rect rgb(200, 150, 255)
+    A->>A2: queries the ciphertext (transfer amount), decrypts to verify expected value
+  end
+  end
+  par Alice (seller) accepts the trade response & completes the trade proposal
+  rect rgb(200, 150, 255)
+    A->>E: setup atomic trade: deliveryLockId = lockId-1
+    B->>E: complete atomic trade: paymentId = ciphertextHandle
+  end
+  end
+  par trade execution approvals
+    rect rgb(200, 150, 255)
+    A->>Aw: approves trade
+    Aw->>A1: delegate lockId-1 to the escrow contract
+    end
+    rect rgb(191, 223, 255)
+    B->>Bw: approves trade
+    Bw->>A2: calls allow(ciphertext, Escrow)
+    end
+  end
+  par trade execution
+    A->>E: execute trade
+    E->>A1: unlocks lockId-1
+    A1->>A1: consumes locked asset and creates new asset for Bob
+    A1-->>Bw: new asset UTXO for Bob
+    A2->>A2: transfers ciphertext amount to Alice
+    A2-->>Aw: transfer(Alice, ciphertext)
+  end
+```
