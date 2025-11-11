@@ -101,6 +101,20 @@ contract FheERC20Lockable is FheERC20, ILockableConfidentialERC20 {
         );
     }
 
+    function delegateLock(
+        bytes32 lockId,
+        address newDelegate,
+        bytes calldata data
+    ) public {
+        Lock memory lock = _locks[lockId];
+        require(
+            lock.delegate == msg.sender,
+            "Only the delegate of the lock can delegate it"
+        );
+        lock.delegate = newDelegate;
+        emit LockDelegated(lockId, lock.delegate, newDelegate, data);
+    }
+
     function _transferFromAsTrustedOperator(
         address from,
         address to,

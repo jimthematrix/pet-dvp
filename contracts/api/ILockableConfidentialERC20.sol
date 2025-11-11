@@ -29,6 +29,12 @@ interface ILockableConfidentialERC20 is ILockable {
         euint64 amount,
         bytes data
     );
+    event LockDelegated(
+        bytes32 lockId,
+        address oldDelegate,
+        address newDelegate,
+        bytes data
+    );
 
     struct Lock {
         address owner;
@@ -36,4 +42,19 @@ interface ILockableConfidentialERC20 is ILockable {
         euint64 amount;
         address delegate;
     }
+
+    function createLock(
+        bytes32 lockId,
+        address receiver,
+        address delegate,
+        externalEuint64 amount,
+        bytes calldata proof,
+        bytes calldata data
+    ) external;
+
+    function delegateLock(
+        bytes32 lockId,
+        address newDelegate,
+        bytes calldata data
+    ) external;
 }

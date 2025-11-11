@@ -100,7 +100,7 @@ interface ILockableConfidentialUTXO is ILockable {
 
     function delegateLock(
         bytes32 lockId,
-        address delegate,
+        address newDelegate,
         bytes calldata data
     ) external;
 }
