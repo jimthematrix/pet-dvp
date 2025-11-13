@@ -207,7 +207,7 @@ sequenceDiagram
     E->>A1: unlocks lockId-1
     A1->>A1: consumes locked asset and creates new asset for Bob
     A1->>B: new asset UTXO for Bob
-    A2->>A2: transfers ciphertext amount to Alice
+    E->>A2: transfers ciphertext amount to Alice
     A2->>A: transfer(Alice, ciphertext)
   end
 ```
