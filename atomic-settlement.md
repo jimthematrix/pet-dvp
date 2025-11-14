@@ -114,13 +114,13 @@ function delegateLock(
 There are slight differences in the function signature due to the different onchain state model used by account based tokens vs. UTXO based tokens. But the locking mechanism is the same and works as follows:
 
 - A lock must be created in a one-time opportunity with `createLock` and can not be modified except for changing thd delegate. This is done for safety reasons: we do not want the trading counterparty to cheat by redirecting the locked funds to somewhere else after we have committed our part of the trade agreement.
-- The creatLock function should be carefully implemented to guarantee true locking, such that the locked assets can not be transferred again except for the lock's settlement or rollback.
+- The `creatLock` function should be carefully implemented to guarantee true locking, such that the locked assets can not be transferred again except for the lock's settlement or rollback.
 - The trade counterparty must be able to inspect the createLock transaction and verify that the `settle` operation represents the intended asset value and movement, as agreed upon. Given the confidential (and anonymous in the case of certain token implementations) nature of the token, the ability to fully verify may depend on secret sharing from the asset owner via out-of-band channels. This is dependent on the specific token implementation.
-- The `delegate` is the only party that can carry out the intended operations to settle, or to rollback either when the trade falls apart (one of the counterparties failed to fulfill their commitment), or when the settlement fails to execute. Typically the delegate should be a smart contract, with trusted processing logic to settle and to rollback.
+- The `delegate` is an important concept for the lock mechanism to work. This is the only party that can carry out the intended operations to settle, or to rollback either when the trade falls apart (one of the counterparties failed to fulfill their commitment), or when the settlement fails to execute. Typically the delegate should be a smart contract, with trusted processing logic to settle and to rollback under the expected conditions.
 
 ### Generic lock interface
 
-Both of the above interfaces extend the following **_generic lock interface_**, which is also used by the settlement orchestration contract to drive the settlement operations against the privacy tokens:
+Both of the above interfaces extend the following **_generic lock interface_**. This interface describes the minimal behavior of a lock that must be consistently implemented by a privacy token, in order to work with the settlement orchestration contract to drive the settlement or rollback operations against the privacy tokens:
 
 - `ILockable`: with a simple interface that provides two functions, `settleLock` and `rollbackLock`, to be called to either proceed with settlement or to rollback. Each operation uses the `lockId` to signal to the target privacy token contract the lock to operate on.
 
@@ -144,8 +144,6 @@ The `initialize()` function is the one-time opportunity to put the diferent legs
 This design assumes that necessary negotations and orchestrations will happen ahead of time, with each of the trading participants having verified the setup of the locks in the relevant token contracts. A trusted party can then call the `initialize()` function on behalf of all the trading participants. The trusted party can either be a smart contract, or an externally owned account (EOA) held by a mutually trusted entity.
 
 After the `initialize()` call, each of the trading parties must be given an opportunity to review the initialized operations, by checking the `lockId` and the `approver` to be the right ones. And checking that the corresponding locks on the respective token contracts are securing the expected amount of assets for the trade. Then each of the trading parties should signal their approval to the escrow contract. Only after all approvals are given, should the `settle()` function be allowed to execute.
-
-Once all the approvals are given, `cancel()` should be disallowed, until the contract is marked as "FAILED" by a call to `settle()` due to reverts in any of the legs/operations. Then any of the trading parties can call `cancel()` to rollback the locks.
 
 On the other hand, any of the trading parties should be allowed to call `cancel()` on the orchestrator contract, before all the approvals are given. This prevents a malicious party from holding up the settlement by staying silent.
 
