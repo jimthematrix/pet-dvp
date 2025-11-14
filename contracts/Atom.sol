@@ -3,7 +3,6 @@ pragma solidity ^0.8.20;
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IConfidentialBalanceCheck} from "./deps/interfaces/IConfidentialBalanceCheck.sol";
 import {ILockable} from "zeto-solidity/contracts/lib/interfaces/ILockable.sol";
 
 contract Atom is Ownable {
@@ -92,17 +91,6 @@ contract Atom is Ownable {
             _operations.push(op);
         }
         emit AtomStatusChanged(status);
-    }
-
-    /**
-     * Allow the verifier to check the balance of the Atom contract in the confidential ERC20 token.
-     * This is considered safe as the life span of the Atom contract is limited to the trade execution.
-     */
-    function allowBalanceCheck(
-        IConfidentialBalanceCheck confidentialERC20,
-        address verifier
-    ) external onlyOwner {
-        confidentialERC20.allowBalanceCheck(verifier);
     }
 
     function approveOperation(
