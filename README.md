@@ -40,8 +40,10 @@ The following test illustrates a rollback scenario when one of the trading parti
     Failed trade flow - counterparty fails to fulfill obligations during setup phase
       Trade proposal setup by Alice
         ✔ Alice and Bob agree on an Atom contract instance to use for the trade, and initialize the lock IDs
-        ✔ Alice uses the lock ID in the Atom contract to lock a UTXO for the trade with Bob (3528ms)
-        ✔ Bob fails to fulfill the trade proposal by Alice, so Alice cancels the trade
+        ✔ Alice uses the lock ID in the Atom contract to lock a UTXO for the trade with Bob (3965ms)
+        ✔ Bob fails to fulfill the trade obligations
+      Trade cancellation by Alice
+        ✔ Alice cancels the trade
         ✔ Alice verifies the trade cancellation by checking the lock events emitted by the Atom contract
         ✔ Alice verifies the trade cancellation by checking the UTXO events emitted by the Zeto contract
         ✔ In the meantime, the other rollback operation has reverted

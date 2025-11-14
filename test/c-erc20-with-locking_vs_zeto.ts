@@ -355,9 +355,7 @@ describe("DvP flows between privacy tokens implementing the locking interface", 
       logger.debug("AtomFactory contract instance deployed at", atomFactory.target);
     });
 
-    describe("Trade proposal setup by Alice", function () {
-      let cancelTxResult: any;
-
+    describe("Trade setup by Alice", function () {
       it("Alice and Bob agree on an Atom contract instance to use for the trade, and initialize the lock IDs", async function () {
         // generate random lockId for Alice's lock
         lockIdAlice = "0x" + randomBytes(32).toString("hex");
@@ -469,9 +467,16 @@ describe("DvP flows between privacy tokens implementing the locking interface", 
         await tx.wait();
       });
 
-      it("Bob fails to fulfill the trade proposal by Alice, so Alice cancels the trade", async function () {
+      it("Bob fails to fulfill the trade obligations", function () {
         // Bob does not lock any FHE ERC20 tokens
-        // so Alice cancels the trade
+      });
+    });
+
+    describe("Trade cancellation by Alice", function () {
+      let cancelTxResult: any;
+
+      it("Alice cancels the trade", async function () {
+        // Alice cancels the trade
         // and the locked UTXO is returned to Alice
         const tx = await atomInstance.connect(Alice.signer).cancel();
         cancelTxResult = await tx.wait();
@@ -497,7 +502,7 @@ describe("DvP flows between privacy tokens implementing the locking interface", 
       });
 
       it("In the meantime, the other rollback operation has reverted", async function () {
-        // the other rollback operation has reverted
+        // the other rollback operation has reverted, because Bob never used the locked id to setup a lock
         const rollbackFailedEvent = parseLockEvents(atomInstance, cancelTxResult!)[1];
         expect(rollbackFailedEvent).to.not.be.null;
         expect(rollbackFailedEvent?.operationIndex).to.equal(1);
